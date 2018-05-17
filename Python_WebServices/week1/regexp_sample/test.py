@@ -1,5 +1,5 @@
 import re
-from week1.regexp_sample.regexp import calculate
+from Python_WebServices.week1.regexp_sample.regexp import calculate
 
 
 def findall(regexp):
