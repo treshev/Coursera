@@ -1,10 +1,10 @@
 from Python_WebServices.week2.soup_sample.wikistat import parse
 
 correct = {
-    'Stone_Age': [13, 10, 12, 40],
-    'Brain': [19, 5, 25, 11],
-    'Artificial_intelligence': [8, 19, 13, 198],
-    'Python_(programming_language)': [2, 5, 17, 41],
+    'Stone_Age':                     [13, 10, 12,  40],
+    'Brain':                         [19,  5, 25,  11],
+    'Artificial_intelligence':       [8,  19, 13, 198],
+    'Python_(programming_language)': [2,   5, 17,  41],
 }
 start = 'Stone_Age'
 end = 'Python_(programming_language)'
