@@ -1,0 +1,4 @@
+<WSGIRequest: GET '/simple_route/?rm=123'>
+text/plain
+GET
+<QueryDict: {}>
