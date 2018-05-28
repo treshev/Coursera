@@ -2,7 +2,7 @@ use test
 set names utf8;
 
 -- 1. Выбрать все товары (все поля)
-select * from product
+select * from product;
 
 -- 2. Выбрать названия всех автоматизированных складов
 select name from store where is_automated = 1;
@@ -20,10 +20,10 @@ select store.store_id  from store left join sale on sale.store_id = store.store_
 select product.name, avg(total/quantity) from sale, product where sale.product_id = product.product_id  group by sale.product_id;
 
 -- 7. Получить названия всех продуктов, которые продавались только с единственного склада
-select ...
+select name from (select product.name, count(distinct store_id) as sc from sale join product on sale.product_id = product.product_id group by sale.product_id having sc = 1) as T;
 
 -- 8. Получить названия всех складов, с которых продавался только один продукт
-select ...
+select name from (select store.name, count(distinct(sale.product_id)) as pc from sale join store on sale.store_id = store.store_id group by sale.store_id having pc = 1) as T;
 
 -- 9. Выберите все ряды (все поля) из продаж, в которых сумма продажи (total) максимальна (равна максимальной из всех встречающихся)
 select * from sale where total in (select max(total) from sale);
