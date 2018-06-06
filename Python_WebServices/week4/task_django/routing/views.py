@@ -1,13 +1,11 @@
-from django.http import HttpResponse, HttpRequest
-from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse, HttpRequest, HttpResponseNotAllowed
 
 
-@csrf_exempt
 def simple_route(request: HttpRequest):
     if request.method == 'GET':
         return HttpResponse(status=200)
     else:
-        return HttpResponse(status=405)
+        return HttpResponseNotAllowed('GET')
 
 
 def slug_route(request: HttpRequest, slug):
@@ -22,19 +20,22 @@ def sum_route(request, a, b):
 
 
 def sum_get_method(request: HttpRequest):
-    a = request.GET.get('a', '')
-    b = request.GET.get('b', '')
-    try:
-        return HttpResponse(int(a) + int(b))
-    except ValueError:
-        return HttpResponse(status=400)
+    if request.method == 'GET':
+        a = request.GET.get('a', '')
+        b = request.GET.get('b', '')
+        try:
+            return HttpResponse(int(a) + int(b))
+        except ValueError:
+            return HttpResponse(status=400)
+    return HttpResponseNotAllowed('GET')
 
 
-@csrf_exempt
 def sum_post_method(request: HttpRequest):
-    a = request.POST.get('a', '')
-    b = request.POST.get('b', '')
-    try:
-        return HttpResponse(int(a) + int(b))
-    except ValueError:
-        return HttpResponse(status=400)
+    if request.method == 'POST':
+        a = request.POST.get('a', '')
+        b = request.POST.get('b', '')
+        try:
+            return HttpResponse(int(a) + int(b))
+        except ValueError:
+            return HttpResponse(status=400)
+    return HttpResponseNotAllowed('POST')

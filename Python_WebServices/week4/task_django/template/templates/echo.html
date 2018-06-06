@@ -1,0 +1,11 @@
+{% if request.GET %}
+    {% for i in request.GET.items %}
+        get {{i.0}}:{{i.1}}
+    {% endfor %}
+{% elif request.POST %}
+    {% for i in request.GET.items %}
+        post {{i.0}}:{{i.1}}
+    {% endfor %}
+{% endif %}
+
+statement is {{statement}}
