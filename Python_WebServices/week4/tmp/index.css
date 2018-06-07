@@ -1,0 +1,18 @@
+.title {font-size: 1.75rem;}
+.header-link {padding-left:10px}
+a {text-decoration: underline;}
+a.page-link, a.page_item {text-decoration: none;}
+.commentaries {margin-left: 15px}
+.commentaries__item {padding: 10px; padding-bottom: 30px;}
+.create_comment {margin-left: 0px}
+a.my_card-link {padding-right: 5px}
+a.tags {text-decoration: none; padding-right:20px; font-size:25px; color:#505050 }
+div.tags {margin-bottom: 50px; }
+.question-img {
+    width: 80px;
+    height: 80px;
+}
+.comment-img {
+    width: 64px;
+    height: 64px;
+}
