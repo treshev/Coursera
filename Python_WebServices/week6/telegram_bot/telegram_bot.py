@@ -172,12 +172,4 @@ def handle_message_reset(message):
 
 bot.polling()
 
-'''
-    for i in range(len(message.photo)):
-        raw = message.photo[i].file_id
-        path = raw + ".jpg"
-        file_info = bot.get_file(raw)
-        downloaded_file = bot.download_file(file_info.file_path)
-        with open(path, 'wb') as new_file:
-        new_file.write(downloaded_file)
-'''
+
