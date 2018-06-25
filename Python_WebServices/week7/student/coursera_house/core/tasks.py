@@ -1,13 +1,13 @@
 from __future__ import absolute_import, unicode_literals
 from celery import task
-from celery import shared_task
 import requests
 
 from .models import Setting
 
+
 @task
 def smart_home_manager():
-    print('ALTR 111')
+    print('ALTR in task')
     headers = {
         'authorization': "Bearer " + Setting.SMART_HOME_ACCESS_TOKEN,
         'content-type': "application/json",
@@ -19,7 +19,3 @@ def smart_home_manager():
             result[param["name"]] = param["value"]
         return result
     pass
-
-@shared_task
-def add(x, y):
-    return x + y

@@ -1,4 +1,5 @@
 from django import forms
+from .models import Setting
 
 
 class ControllerForm(forms.Form):
@@ -9,3 +10,11 @@ class ControllerForm(forms.Form):
 
     def save(self):
         pass
+
+    def load(self):
+        self.data['bedroom_target_temperature'] = ['30']
+        self.data['hot_water_target_temperature'] = 30
+
+        self.data['bedroom_light'] = True
+        self.data['bathroom_light'] = False
+        print('ALTR I am in load')
