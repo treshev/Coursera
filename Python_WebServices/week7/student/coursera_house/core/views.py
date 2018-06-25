@@ -1,8 +1,9 @@
+import requests
 from django.urls import reverse_lazy
 from django.views.generic import FormView
 
-from .models import Setting
 from .form import ControllerForm
+from .models import Setting
 
 
 class ControllerView(FormView):
@@ -12,8 +13,19 @@ class ControllerView(FormView):
 
     def get_context_data(self, **kwargs):
         context = super(ControllerView, self).get_context_data()
-        context['data'] = {}
-        return context
+
+        headers = {
+            'authorization': "Bearer " + Setting.SMART_HOME_ACCESS_TOKEN,
+            'content-type': "application/json",
+        }
+        req = requests.get(Setting.SMART_HOME_API_URL + "user.controller", headers=headers)
+        if req.status_code == 200:
+            result = {}
+            for param in req.json()['data']:
+                result[param["name"]] = param["value"]
+            context['data'] = result
+            return context
+        return None
 
     def get_initial(self):
         return {}
