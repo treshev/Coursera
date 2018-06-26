@@ -1,11 +1,10 @@
-import requests
-from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import FormView
-from .tasks import smart_home_manager
 
 from .form import ControllerForm
+from .models import Setting
+from .tasks import smart_home_manager
 
 
 class ControllerView(FormView):
@@ -14,14 +13,16 @@ class ControllerView(FormView):
     success_url = reverse_lazy('form')
 
     def get_context_data(self, **kwargs):
-        print("ALTR get_context_data")
         context = super(ControllerView, self).get_context_data()
         context['data'] = smart_home_manager()
-        form = ControllerForm()
-        form.load()
-        print(form.data)
+
+        settings = Setting.objects.all()
+        result = {}
+        for setting in settings:
+            result[setting.controller_name] = setting.value
+
+        form = ControllerForm(initial=result)
         context['form'] = form
-        print(form)
         return context
 
     def get_initial(self):
@@ -31,7 +32,13 @@ class ControllerView(FormView):
         return super(ControllerView, self).form_valid(form)
 
     def post(self, request, *args, **kwargs):
-        print(request.POST)
+        for param in request.POST.keys():
+            setting, created = Setting.objects.get_or_create(controller_name=param)
+            if created:
+                par_value = request.POST[param]
+                setting.value = par_value
+            setting.save()
+
         form = self.form_class(request.POST)
-        return render(request, self.template_name, {'form': form, 'data': smart_home_manager()})
-        # return super(ControllerView, self).form_valid(form)
+        data = smart_home_manager()
+        return render(request, self.template_name, {'form': form, 'data': data})
