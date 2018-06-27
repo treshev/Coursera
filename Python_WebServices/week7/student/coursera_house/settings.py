@@ -123,9 +123,12 @@ cache = redis.StrictRedis()
 STATIC_URL = '/static/'
 SMART_HOME_ACCESS_TOKEN = os.getenv('SMART_HOME_ACCESS_TOKEN')
 SMART_HOME_API_URL = os.getenv('SMART_HOME_API_URL', 'http://smarthome.t3st.ru/api/user.controller')
-EMAIL_HOST  = os.getenv('EMAIL_HOST', 'EMAIL_HOST')
-EMAIL_PORT  = os.getenv('EMAIL_PORT', 'EMAIL_PORT')
+EMAIL_HOST  = os.getenv('EMAIL_HOST', 'smtp.mail.ru')
+EMAIL_PORT  = os.getenv('EMAIL_PORT', '465')
+EMAIL_HOST_USER  = os.getenv('EMAIL_HOST_USER', 'nemo_samara@mail.ru')
+EMAIL_HOST_PASSWORD  = os.getenv('EMAIL_HOST_PASSWORD', 'eCb7eJwP')
 EMAIL_RECEPIENT  = os.getenv('EMAIL_RECEPIENT', 'EMAIL_RECEPIENT')
+EMAIL_USE_SSL  = os.getenv('EMAIL_USE_SSL', 'True')
 
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'

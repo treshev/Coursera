@@ -21,24 +21,28 @@ class ControllerView(FormView):
         for setting in settings:
             result[setting.controller_name] = setting.value
 
+        result["bedroom_light"] = context['data']['bedroom_light']
+        result["bathroom_light"] = context['data']['bathroom_light']
         form = ControllerForm(initial=result)
         context['form'] = form
+
+        print("ALTR IN CONTEXT #############################")
         return context
 
     def get_initial(self):
+        print("ALTR GET_INITIAL #############################")
         return {}
 
     def form_valid(self, form):
         return super(ControllerView, self).form_valid(form)
 
     def post(self, request, *args, **kwargs):
-        for param in request.POST.keys():
-            setting, created = Setting.objects.get_or_create(controller_name=param)
-            if created:
-                par_value = request.POST[param]
-                setting.value = par_value
-            setting.save()
 
-        form = self.form_class(request.POST)
+        settings = Setting.objects.filter(controller_name__in=['bedroom_target_temperature', 'hot_water_target_temperature'])
+        for param in settings:
+            param.value = request.POST[param.controller_name]
+            param.save()
+
         data = smart_home_manager()
+        form = self.form_class(request.POST)
         return render(request, self.template_name, {'form': form, 'data': data})
