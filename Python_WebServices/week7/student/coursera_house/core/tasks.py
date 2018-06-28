@@ -1,22 +1,34 @@
 from __future__ import absolute_import, unicode_literals
-
 from time import sleep
+from celery import task
+from .models import Setting
 
 import django.core.mail as mail
 import requests
-from celery import task
-
-from .models import Setting
 
 
 @task
 def smart_home_manager():
-    response = get_response_form_the_controller()
-    callback_commands = response_handler(response)
-    print("ALTR commands: ", callback_commands)
-    if len(callback_commands) > 0:
-        send_callback_commands(callback_commands)
-    return response
+    req = get_response_form_the_controller()
+
+    if req and req.status_code == 200:
+
+        device_parameters = get_devices_parameters(req)
+        callback_commands = response_handler(device_parameters)
+
+        if callback_commands:
+            send_callback_commands(callback_commands)
+
+        return device_parameters
+
+    return None
+
+
+def get_devices_parameters(req):
+    device_parameters = {}
+    for param in req.json()['data']:
+        device_parameters[param["name"]] = param["value"]
+    return device_parameters
 
 
 def get_response_form_the_controller():
@@ -24,12 +36,25 @@ def get_response_form_the_controller():
         'authorization': "Bearer " + Setting.SMART_HOME_ACCESS_TOKEN,
         'content-type': "application/json",
     }
-    req = requests.get(Setting.SMART_HOME_API_URL + "user.controller", headers=headers)
-    if req.status_code == 200:
-        result = {}
-        for param in req.json()['data']:
-            result[param["name"]] = param["value"]
-        return result
+    try:
+        req = requests.get(Setting.SMART_HOME_API_URL + "user.controller", headers=headers)
+    except ConnectionError:
+        return None
+    return req
+
+
+def send_callback_commands(commands: list):
+    headers = {
+        'authorization': "Bearer " + Setting.SMART_HOME_ACCESS_TOKEN,
+        'content-type': "application/json",
+    }
+    data = {"controllers": commands}
+
+    try:
+        req = requests.post(Setting.SMART_HOME_API_URL + "user.controller", headers=headers, json=data)
+    except ConnectionError:
+        return None
+    return req
 
 
 def append_command(name, value, response, callback):
@@ -97,23 +122,11 @@ def response_handler(response: dict):
     return callback
 
 
-def send_callback_commands(commands: list):
-    headers = {
-        'authorization': "Bearer " + Setting.SMART_HOME_ACCESS_TOKEN,
-        'content-type': "application/json",
-    }
-    data = {"controllers": commands}
-    req = requests.post(Setting.SMART_HOME_API_URL + "user.controller", headers=headers, json=data)
-    print("ALTR POST code = ", req.status_code)
-    # print("ALTR POST json = ", req.status_code, req.json())
-
-
 def send_email():
     mail.send_mail(
         'Обнаружена протечка',
         'Обнаружена протечка, вода перекрыта',
-        'nemo_samara@mail.ru',
-        Setting.MAIL_RECEPIENT,
+        recipient_list=Setting.MAIL_RECEPIENT,
         fail_silently=False,
     )
 

@@ -12,9 +12,9 @@ https://docs.djangoproject.com/en/1.11/ref/settings/
 
 import os
 from celery.schedules import crontab
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
@@ -26,7 +26,6 @@ SECRET_KEY = 'dv1qcb=38l1xxc46xpp#qi(hz548)2o+2#z*0@xof=dkvl+ahk'
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
 
 # Application definition
 
@@ -70,7 +69,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'coursera_house.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
@@ -80,7 +78,6 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -100,7 +97,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/
 
@@ -115,6 +111,7 @@ USE_L10N = True
 USE_TZ = True
 
 import redis
+
 cache = redis.StrictRedis()
 
 # Static files (CSS, JavaScript, Images)
@@ -123,12 +120,13 @@ cache = redis.StrictRedis()
 STATIC_URL = '/static/'
 SMART_HOME_ACCESS_TOKEN = os.getenv('SMART_HOME_ACCESS_TOKEN')
 SMART_HOME_API_URL = os.getenv('SMART_HOME_API_URL', 'http://smarthome.t3st.ru/api/user.controller')
-EMAIL_HOST  = os.getenv('EMAIL_HOST', 'smtp.mail.ru')
-EMAIL_PORT  = os.getenv('EMAIL_PORT', '465')
-EMAIL_HOST_USER  = os.getenv('EMAIL_HOST_USER', 'nemo_samara@mail.ru')
-EMAIL_HOST_PASSWORD  = os.getenv('EMAIL_HOST_PASSWORD', 'eCb7eJwP')
-EMAIL_RECEPIENT  = os.getenv('EMAIL_RECEPIENT', 'EMAIL_RECEPIENT')
-EMAIL_USE_SSL  = os.getenv('EMAIL_USE_SSL', 'True')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.mail.ru')
+EMAIL_PORT = os.getenv('EMAIL_PORT', '465')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', 'nemo_samara@mail.ru')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', 'eCb7eJwP')
+EMAIL_RECEPIENT = os.getenv('EMAIL_RECEPIENT', 'EMAIL_RECEPIENT')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'nemo_samara@mail.ru')
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'True')
 
 CELERY_BROKER_URL = 'redis://127.0.0.1:6379'
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379'
