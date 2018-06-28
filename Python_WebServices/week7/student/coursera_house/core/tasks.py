@@ -32,6 +32,11 @@ def get_response_form_the_controller():
         return result
 
 
+def append_command(name, value, response, callback):
+    if response.get(name, None) != value:
+        callback.append({"name": name, "value": value})
+
+
 def response_handler(response: dict):
     callback = []
 
@@ -42,52 +47,52 @@ def response_handler(response: dict):
         base_data[setting.controller_name] = setting.value
 
     if response.get("smoke_detector", None) is True:
-        callback.append({"name": 'air_conditioner', "value": False})
-        callback.append({"name": 'bedroom_light', "value": False})
-        callback.append({"name": 'bathroom_light', "value": False})
-        callback.append({"name": 'boiler', "value": False})
-        callback.append({"name": 'washing_machine', "value": "off"})
+        append_command('air_conditioner', False, response, callback)
+        append_command('bedroom_light', False, response, callback)
+        append_command('bathroom_light', False, response, callback)
+        append_command('boiler', False, response, callback)
+        append_command('washing_machine', "off", response, callback)
     else:
         if response.get("bedroom_temperature", 0) > (
                 base_data["bedroom_target_temperature"] + (
                 base_data["bedroom_target_temperature"] / 100 * 10)):
-            callback.append({"name": 'air_conditioner', "value": True})
+            append_command('air_conditioner', True, response, callback)
         elif response.get("bedroom_temperature", 0) < (
                 base_data["bedroom_target_temperature"] - (
                 base_data["bedroom_target_temperature"] / 100 * 10)):
-            callback.append({"name": 'air_conditioner', "value": False})
+            append_command('air_conditioner', False, response, callback)
 
     if response.get("leak_detector", None) is True:
-        callback.append({"name": "cold_water", "value": False})
-        callback.append({"name": "hot_water", "value": False})
-        callback.append({"name": 'boiler', "value": False})
-        callback.append({"name": 'washing_machine', "value": "off"})
+        append_command('cold_water', False, response, callback)
+        append_command('hot_water', False, response, callback)
+        append_command('boiler', False, response, callback)
+        if response.get("smoke_detector", None) is False:
+            append_command('washing_machine', "off", response, callback)
         send_email()
     else:
         if response.get("smoke_detector", None) is False and response.get("cold_water", None) is False:
-            callback.append({"name": 'boiler', "value": False})
-            callback.append({"name": 'washing_machine', "value": "off"})
-            # TODO: надо понять как включать машинку если дадут воду
+            append_command('boiler', False, response, callback)
+            append_command('washing_machine', "off", response, callback)
 
         if response.get("smoke_detector", None) is False and response.get("boiler_temperature",
                                                                           None) is not None and response.get(
             "boiler_temperature", None) < (
                 base_data["hot_water_target_temperature"] - (
                 base_data["hot_water_target_temperature"] / 100 * 10)):
-            callback.append({"name": 'boiler', "value": True})
+            append_command('boiler', True, response, callback)
         elif response.get("smoke_detector", None) is False and response.get("boiler_temperature",
                                                                             None) is not None and response.get(
             "boiler_temperature", 0) > (
                 base_data["hot_water_target_temperature"] + (
                 base_data["hot_water_target_temperature"] / 100 * 10)):
-            callback.append({"name": 'boiler', "value": False})
+            append_command('boiler', False, response, callback)
 
     if response.get("curtains", None) != "slightly_open":
         if response.get("outdoor_light", None) < 50 and response.get("bedroom_light", None) is False:
-            callback.append({"name": 'curtains', "value": "open"})
+            append_command('curtains', "open", response, callback)
 
         if response.get("outdoor_light", None) > 50 or response.get("bedroom_light", None) is True:
-            callback.append({"name": 'curtains', "value": "close"})
+            append_command('curtains', "close", response, callback)
 
     return callback
 

@@ -1,33 +1,15 @@
-# import requests
-#
-# commands = [{
-#     "name": "air_conditioner",
-#     "value": False
-# }, ]
-#
-# headers = {
-#     'authorization': "Bearer cd5547b376b51438221dcdc905b426cfd463d8735a5ab1509c137ceb2f66132a",
-#     'content-type': "application/json",
-# }
-#
-# data = {"controllers": commands}
-#
-# print("ALTR DATA = ", data)
+import requests
+
+commands = [{
+    "name": "air_conditioner",
+    "value": False
+}, ]
+
+data = {
+    "bedroom_target_temperature": 43,
+    "hot_water_target_temperature": 33,
+        }
+
 # req = requests.post("http://smarthome.t3st.ru/api/user.controller", headers=headers, json=data)
-# print("ALTR POST answer = ", req.status_code, req.json())
-import django.core.mail as mail
-
-
-def send_email():
-    mail.send_mail(
-        'Subject here',
-        'Here is the message.',
-        'from@example.com',
-        ['a.treshev@gmail.com'],
-        fail_silently=False,
-    )
-
-
-if __name__ == '__main__':
-    import socket
-    print(socket.getaddrinfo('smtp.gmail.com', 465, 0, 1, 0, 0))
+req = requests.post("http://127.0.0.1:8000/control", data=data)
+print("ALTR POST answer = ", req.status_code, req.content)
