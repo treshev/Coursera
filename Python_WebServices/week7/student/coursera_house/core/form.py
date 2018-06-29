@@ -1,4 +1,5 @@
 from django import forms
+from .models import Setting
 
 
 class ControllerForm(forms.Form):
@@ -8,4 +9,13 @@ class ControllerForm(forms.Form):
     bathroom_light = forms.BooleanField(required=False)
 
     def save(self):
-        pass
+        bedroom_target_temperature = Setting.objects.get(controller_name='bedroom_target_temperature')
+        bedroom_target_temperature.value = self.cleaned_data["bedroom_target_temperature"]
+        bedroom_target_temperature.save()
+
+        hot_water_target_temperature = Setting.objects.get(controller_name='hot_water_target_temperature')
+        hot_water_target_temperature.value = self.cleaned_data["hot_water_target_temperature"]
+        hot_water_target_temperature.save()
+
+    def clean(self):
+        return super().clean()

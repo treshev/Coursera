@@ -38,7 +38,7 @@ def get_response_form_the_controller():
     }
     try:
         req = requests.get(Setting.SMART_HOME_API_URL + "user.controller", headers=headers)
-    except ConnectionError:
+    except requests.exceptions.ConnectionError:
         return None
     return req
 
@@ -52,7 +52,7 @@ def send_callback_commands(commands: list):
 
     try:
         req = requests.post(Setting.SMART_HOME_API_URL + "user.controller", headers=headers, json=data)
-    except ConnectionError:
+    except requests.exceptions.ConnectionError:
         return None
     return req
 
