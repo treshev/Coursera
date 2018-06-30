@@ -1,5 +1,4 @@
 from django.http import HttpResponse
-from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views.generic import FormView
 
@@ -15,15 +14,9 @@ class ControllerView(FormView):
     devices = {}
 
     def get_context_data(self, **kwargs):
-        print("### ALTR get_context_data ###")
         context = super(ControllerView, self).get_context_data()
-        devices = self.get_devices()
-        if devices:
-            context["data"] = devices
-        return context
+        print("### ALTR IN GET_CONTEXT_DATA ###")
 
-    def get_initial(self):
-        print("### ALTR get_initial ###")
         result = {}
         try:
             bedroom_target_temperature = Setting.objects.get(controller_name="bedroom_target_temperature")
@@ -38,38 +31,31 @@ class ControllerView(FormView):
                                                                   value=80)
         result["hot_water_target_temperature"] = hot_water_target_temperature.value
 
-        devices = self.get_devices()
-        result["bedroom_light"] = devices["bedroom_light"]
-        result["bathroom_light"] = devices["bathroom_light"]
+        if self.devices:
+            result["bedroom_light"] = self.devices["bedroom_light"]
+            result["bathroom_light"] = self.devices["bathroom_light"]
+            context['data'] = self.devices
 
-        return result
+        form = ControllerForm(initial=result)
+        context['form'] = form
+        return context
+
+    def get_initial(self):
+        print("### ALTR GET_INITIAL ###")
 
     def form_valid(self, form):
-        return super(ControllerView, self).form_valid(form)
-
-    def post(self, request, *args, **kwargs):
-        print("### ALTR POST ###")
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            form.save()
-            context = {}
-            devices = self.get_devices()
-            if devices:
-                form_params = {
-                    "bedroom_target_temperature": form.data["bedroom_target_temperature"],
-                    "hot_water_target_temperature": form.data["hot_water_target_temperature"],
-                    "bedroom_light": devices["bedroom_light"],
-                    "bathroom_light": devices["bathroom_light"]
-                }
-                updated_form = ControllerForm(initial=form_params)
-                context["data"] = devices
-                context["form"] = updated_form
-
-                return render(request, self.template_name, context)
-            else:
-                return HttpResponse(status=502)
+        print("### ALTR FORM_VALID ###")
+        self.devices = smart_home_manager()
+        form.save()
+        if self.devices:
+            return super(ControllerView, self).form_valid(form)
         else:
-            return HttpResponse(status=400)
+            return HttpResponse(status=502)
 
-    def get_devices(self):
-        return smart_home_manager()
+    def get(self, request, *args, **kwargs):
+        print("### ALTR GET ###")
+        self.devices = smart_home_manager()
+        if self.devices:
+            return super().get(request, *args, **kwargs)
+        else:
+            return HttpResponse(status=502)

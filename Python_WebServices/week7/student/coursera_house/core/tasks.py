@@ -9,6 +9,7 @@ import requests
 
 @task
 def smart_home_manager():
+    print("ALTR GET to controller")
     req = get_response_form_the_controller()
 
     if req and req.status_code == 200:
@@ -17,6 +18,7 @@ def smart_home_manager():
         callback_commands = response_handler(device_parameters)
 
         if callback_commands:
+            print("ALTR POST to controller")
             send_callback_commands(callback_commands)
 
         return device_parameters
