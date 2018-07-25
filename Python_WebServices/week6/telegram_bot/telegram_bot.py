@@ -25,18 +25,17 @@ def get_redis_connection():
     return redis_connection
 
 
-def get_user_data(message):
+def get_user_data(user_id):
     if IS_REDIS:
         r = get_redis_connection()
-        user_binary_data = r.get(message.chat.id)
+        user_binary_data = r.get(user_id)
         user_data = json.loads(user_binary_data) if user_binary_data else None
         return user_data
     else:
-        return USER_DATA.get(message.chat.id, None)
+        return USER_DATA.get(user_id, None)
 
 
-def update_user_data(message, key, value):
-    user_id = message.message.chat.id if isinstance(message, types.CallbackQuery) else message.chat.id
+def update_user_data(user_id, key, value):
     if IS_REDIS:
         r = get_redis_connection()
         user = r.get(user_id)
@@ -57,8 +56,7 @@ def update_user_data(message, key, value):
             USER_DATA[user_id]["current"][key] = value
 
 
-def commit_user_data(message):
-    user_id = message.message.chat.id if isinstance(message, types.CallbackQuery) else message.chat.id
+def commit_user_data(user_id):
     if IS_REDIS:
         r = get_redis_connection()
         user = r.get(user_id)
@@ -73,8 +71,7 @@ def commit_user_data(message):
             USER_DATA[user_id]['current'] = {}
 
 
-def delete_user_data(message):
-    user_id = message.message.chat.id if isinstance(message, types.CallbackQuery) else message.chat.id
+def delete_user_data(user_id):
     if IS_REDIS:
         r = get_redis_connection()
         r.delete(user_id)
@@ -82,8 +79,7 @@ def delete_user_data(message):
         USER_DATA.pop(user_id, "Empty")
 
 
-def get_state(message):
-    user_id = message.message.chat.id if isinstance(message, types.CallbackQuery) else message.chat.id
+def get_state(user_id):
     if IS_REDIS:
         r = get_redis_connection()
         user_state_data = r.get("USER_STATE_{}".format(user_id))
@@ -140,31 +136,19 @@ def handle_initial_commands(callback_query):
 @bot.message_handler(commands=['add'])
 def handle_add_command(message):
     text = message.text.split(" ")
+    user_id = message.message.chat.id if isinstance(message, types.CallbackQuery) else message.chat.id
     if "add" in message.text and len(text) > 1:
-        update_user_data(message, "address", text[5:])
+        update_user_data(user_id, "address", text[5:])
         keyboard = create_yes_no_keyboard()
         update_state(message, IS_PHOTO_NEEDED)
         bot.send_message(chat_id=message.chat.id, text="Хотите добавить фото?",
                          reply_markup=keyboard)
     else:
         update_state(message, ADD_ADDRESS)
-        bot.send_message(chat_id=message.chat.id, text="Введите адрес")
+        bot.send_message(chat_id=user_id, text="Введите адрес")
 
 
-@bot.message_handler(func=lambda message: get_state(message) == ADD_ADDRESS)
-def handle_address_message(message):
-    print(message.text)
-    if message.text and "list" not in message.text and "reset" not in message.text:
-        update_user_data(message, "address", message.text)
-        keyboard = create_yes_no_keyboard()
-        update_state(message, IS_PHOTO_NEEDED)
-        bot.send_message(chat_id=message.chat.id, text="Хотите добавить фото?",
-                         reply_markup=keyboard)
-    else:
-        update_state(message, START)
-
-
-@bot.callback_query_handler(func=lambda message: get_state(message) == IS_PHOTO_NEEDED)
+@bot.callback_query_handler(func=lambda message: get_state(message.message.chat.id) == IS_PHOTO_NEEDED)
 def callback_handler(callback_query):
     data = callback_query.data
     message = callback_query.message
@@ -178,18 +162,7 @@ def callback_handler(callback_query):
                          reply_markup=keyboard)
 
 
-@bot.message_handler(content_types=['photo'], func=lambda message: get_state(message) == ADD_PHOTO)
-def handle_photo(message):
-    file_id = message.photo[-1].file_id
-    update_user_data(message, "file_id", file_id)
-
-    keyboard = create_yes_no_keyboard()
-    update_state(message, IS_LOCATION_NEEDED)
-    bot.send_message(chat_id=message.chat.id, text="Хотите добавить локейшен?",
-                     reply_markup=keyboard)
-
-
-@bot.callback_query_handler(func=lambda message: get_state(message) == IS_LOCATION_NEEDED)
+@bot.callback_query_handler(func=lambda message: get_state(message.message.chat.id) == IS_LOCATION_NEEDED)
 def callback_handler(callback_query):
     data = callback_query.data
     message = callback_query.message
@@ -198,26 +171,51 @@ def callback_handler(callback_query):
         bot.send_message(message.chat.id, text='Пожалуйста добавьте локацию')
     else:
         update_state(callback_query, END)
-        commit_user_data(message)
+        commit_user_data(message.chat.id)
         bot.send_message(message.chat.id, text='Адресс был успешно добавлен')
 
 
-@bot.message_handler(content_types=['location'], func=lambda message: get_state(message) != ADD_LOCATION)
+@bot.message_handler(func=lambda message: get_state(message.chat.id) == ADD_ADDRESS)
+def handle_address_message(message):
+    user_id = message.message.chat.id if isinstance(message, types.CallbackQuery) else message.chat.id
+    if message.text and "list" not in message.text and "reset" not in message.text:
+        update_user_data(user_id, "address", message.text)
+        keyboard = create_yes_no_keyboard()
+        update_state(message, IS_PHOTO_NEEDED)
+        bot.send_message(chat_id=message.chat.id, text="Хотите добавить фото?",
+                         reply_markup=keyboard)
+    else:
+        update_state(user_id, START)
+
+
+@bot.message_handler(content_types=['photo'], func=lambda message: get_state(message.chat.id) == ADD_PHOTO)
+def handle_photo(message):
+    file_id = message.photo[-1].file_id
+    update_user_data(message.chat.id, "file_id", file_id)
+
+    keyboard = create_yes_no_keyboard()
+    update_state(message, IS_LOCATION_NEEDED)
+    bot.send_message(chat_id=message.chat.id, text="Хотите добавить локейшен?",
+                     reply_markup=keyboard)
+
+
+@bot.message_handler(content_types=['location'], func=lambda message: get_state(message.chat.id) != ADD_LOCATION)
 def handle_photo(message):
     bot.send_message(message.chat.id, text='Объект был успешно добавлен')
 
 
-@bot.message_handler(content_types=['location'], func=lambda message: get_state(message) == ADD_LOCATION)
+@bot.message_handler(content_types=['location'], func=lambda message: get_state(message.chat.id) == ADD_LOCATION)
 def handle_photo(message):
     location = message.location
-    update_user_data(message, "location", [location.latitude, location.longitude])
-    commit_user_data(message)
+    update_user_data(message.chat.id, "location", [location.latitude, location.longitude])
+    commit_user_data(message.chat.id)
     bot.send_message(message.chat.id, text='Объект был успешно добавлен')
 
 
 @bot.message_handler(commands=['list'])
 def handle_list_command(message):
-    places_list = get_user_data(message)
+    user_id = message.message.chat.id if isinstance(message, types.CallbackQuery) else message.chat.id
+    places_list = get_user_data(user_id)
     if places_list:
         i = 1
         for place in places_list:
@@ -244,7 +242,7 @@ def handle_list_command(message):
 
 @bot.message_handler(commands=['reset'])
 def handle_reset_command(message):
-    delete_user_data(message)
+    delete_user_data(message.chat.id)
     bot.send_message(chat_id=message.chat.id, text="Заметки были успешно удалены")
 
 
