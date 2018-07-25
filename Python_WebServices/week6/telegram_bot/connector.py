@@ -1,6 +1,6 @@
 import datetime
 import json
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 
 import redis
 
@@ -30,20 +30,22 @@ class Connector:
 
 
 class RedisConnector(Connector):
-
     redis_connection = None
 
     def get_redis_connection(self):
-        global redis_connection
-        if redis_connection is None:
-            redis_connection = redis.StrictRedis(host='localhost', port=6379, db=0)
-        return redis_connection
+        if self.redis_connection is None:
+            self.redis_connection = redis.StrictRedis(host='localhost', port=6379, db=0)
+        return self.redis_connection
 
     def get_user_data(self, chat_id):
         r = self.get_redis_connection()
-        user_binary_data = r.get(chat_id.chat.id)
-        user_data = json.loads(user_binary_data) if user_binary_data else None
-        return user_data
+        user_binary_data = r.get(chat_id)
+        if user_binary_data:
+            user_data = json.loads(user_binary_data)
+            ordered_list = OrderedDict(sorted(user_data.items(), reverse=True))
+            return ordered_list
+        else:
+            return None
 
     def update_user_data(self, chat_id, key, value):
         r = self.get_redis_connection()
@@ -60,7 +62,7 @@ class RedisConnector(Connector):
         r.set(chat_id, json.dumps(user_data))
 
     def commit_user_data(self, chat_id):
-        r = self.get_redis_connection(self)
+        r = self.get_redis_connection()
         user = r.get(chat_id)
         if user:
             user_data = json.loads(user)
