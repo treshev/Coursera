@@ -87,7 +87,8 @@ def get_state(message):
     if IS_REDIS:
         r = get_redis_connection()
         user_state_data = r.get("USER_STATE_{}".format(user_id))
-        return json.loads(user_state_data)
+        user_data = int(user_state_data) if user_state_data else None
+        return user_data
     else:
         return USER_STATE[user_id]
 
@@ -139,7 +140,7 @@ def handle_initial_commands(callback_query):
 @bot.message_handler(commands=['add'])
 def handle_add_command(message):
     text = message.text.split(" ")
-    if len(text) > 1:
+    if "add" in message.text and len(text) > 1:
         update_user_data(message, "address", text[5:])
         keyboard = create_yes_no_keyboard()
         update_state(message, IS_PHOTO_NEEDED)
