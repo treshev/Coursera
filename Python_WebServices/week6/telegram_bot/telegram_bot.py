@@ -1,6 +1,9 @@
-import connector
+import logging
+import os
 
+import connector
 import telebot
+from flask import Flask, request
 from telebot import types
 
 START, ADD_ADDRESS, IS_PHOTO_NEEDED, ADD_PHOTO, IS_LOCATION_NEEDED, ADD_LOCATION, END = range(7)
@@ -159,4 +162,33 @@ def handle_reset_command(message):
     bot.send_message(chat_id=message.chat.id, text="Заметки были успешно удалены")
 
 
-bot.polling()
+if __name__ == '__main__':
+    if "HEROKU" in list(os.environ.keys()):
+        logger = telebot.logger
+        telebot.logger.setLevel(logging.INFO)
+
+        server = Flask(__name__)
+
+
+        @server.route("/bot", methods=['POST'])
+        def getMessage():
+            bot.process_new_updates([telebot.types.Update.de_json(request.stream.read().decode("utf-8"))])
+            return "!", 200
+
+
+        @server.route("/")
+        def webhook():
+            bot.remove_webhook()
+            bot.set_webhook(
+                url="https://alekssmr.herokuapp.com/bot")  # этот url нужно заменить на url вашего Хероку приложения
+            return "?", 200
+
+
+        server.run(host="0.0.0.0", port=os.environ.get('PORT', 80))
+
+        bot.polling()
+    else:
+        # если переменной окружения HEROKU нету, значит это запуск с машины разработчика.
+        # Удаляем вебхук на всякий случай, и запускаем с обычным поллингом.
+        bot.remove_webhook()
+        bot.polling(none_stop=True)
