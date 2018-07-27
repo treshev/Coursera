@@ -1,10 +1,11 @@
 import logging
 import os
 
-import connector
 import telebot
 from flask import Flask, request
 from telebot import types
+
+import connector
 
 START, ADD_ADDRESS, IS_PHOTO_NEEDED, ADD_PHOTO, IS_LOCATION_NEEDED, ADD_LOCATION, END = range(7)
 
@@ -35,8 +36,9 @@ def create_yes_no_keyboard():
 @bot.message_handler(commands=['start'])
 def handle_start_message(message):
     keyboard = create_keyboard()
-    bot.send_message(chat_id=message.chat.id, text="Hello my friend. Please choose what you wonna do",
-                     reply_markup=keyboard)
+    bot.send_message(chat_id=message.chat.id,
+                     text="Приветствую Вас. \nВы можете добавить объект использую команду\n/add <b>адрес объекта</b>\n или использовать одну из кнопок ниже",
+                     reply_markup=keyboard, parse_mode="HTML")
 
 
 @bot.callback_query_handler(func=lambda
@@ -164,9 +166,9 @@ def handle_reset_command(message):
 
 if __name__ == '__main__':
     if "HEROKU" in list(os.environ.keys()):
+
         logger = telebot.logger
         telebot.logger.setLevel(logging.INFO)
-
         server = Flask(__name__)
 
 
@@ -180,13 +182,11 @@ if __name__ == '__main__':
         def webhook():
             bot.remove_webhook()
             bot.set_webhook(
-                url="https://alekssmr.herokuapp.com/bot")  # этот url нужно заменить на url вашего Хероку приложения
+                url="https://curserabot.herokuapp.com/bot")  # этот url нужно заменить на url вашего Хероку приложения
             return "?", 200
 
 
         server.run(host="0.0.0.0", port=os.environ.get('PORT', 80))
-
-        bot.polling()
     else:
         # если переменной окружения HEROKU нету, значит это запуск с машины разработчика.
         # Удаляем вебхук на всякий случай, и запускаем с обычным поллингом.

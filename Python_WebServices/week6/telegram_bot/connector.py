@@ -1,6 +1,7 @@
 import datetime
 import json
 from collections import defaultdict, OrderedDict
+import os
 
 import redis
 
@@ -34,7 +35,8 @@ class RedisConnector(Connector):
 
     def get_redis_connection(self):
         if self.redis_connection is None:
-            self.redis_connection = redis.StrictRedis(host='localhost', port=6379, db=0)
+            redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+            self.redis_connection = redis.Redis.from_url(redis_url)
         return self.redis_connection
 
     def get_user_data(self, chat_id):
