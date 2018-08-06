@@ -116,10 +116,10 @@ def handle_photo(message):
                      reply_markup=keyboard)
 
 
-@bot.message_handler(content_types=['location'],
-                     func=lambda message: connection.get_state(message.chat.id) != ADD_LOCATION)
-def handle_photo(message):
-    bot.send_message(message.chat.id, text='Объект был успешно добавлен')
+# @bot.message_handler(content_types=['location'],
+#                      func=lambda message: connection.get_state(message.chat.id) != ADD_LOCATION)
+# def handle_photo(message):
+#     bot.send_message(message.chat.id, text='Объект был успешно добавлен')
 
 
 @bot.message_handler(content_types=['location'],

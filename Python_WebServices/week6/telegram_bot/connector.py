@@ -36,7 +36,9 @@ class RedisConnector(Connector):
     def get_redis_connection(self):
         if self.redis_connection is None:
             redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+            print('ALTR: Redis url is: ', redis_url)
             self.redis_connection = redis.Redis.from_url(redis_url)
+            # self.redis_connection = redis.StrictRedis(host='localhost', port=6379, db=0)
         return self.redis_connection
 
     def get_user_data(self, chat_id):
